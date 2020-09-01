@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{b2690663-ceb1-439b-9ccb-04933370b064}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile />
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>Global|VisualStudio|arcgispro-py3</InterpreterId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="GeoScene-Sentinel2\GeoScene_Sentinel2.py" />
+    <Compile Include="System\Deimos-2\Deimos_2.py" />
+    <Compile Include="System\TeLEOS-1\TeLEOS-1.py" />
+    <Compile Include="types\DataCube-Landsat\DataCube-Landsat.py" />
+    <Compile Include="types\DataCube-Sentinel\DataCube-Sentinel.py" />
+    <Compile Include="types\GeoScience-Landsat\Geoscience-Landsat.py" />
+    <Compile Include="types\Geoscience-Sentinel2\Geoscience-Sentinel.py" />
+    <Compile Include="types\Geoscience\Geoscience.py" />
+    <Compile Include="types\sample\pythonRasterDatasetSample.py" />
+    <Compile Include="types\sample\utils.py" />
+    <Compile Include="types\SuperView-1\SuperView-1.py" />
+    <Compile Include="types\Triplesat\TripleSat.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DataCube-Landsat" />
+    <Folder Include="GeoScene-Sentinel2" />
+    <Folder Include="System\" />
+    <Folder Include="System\Deimos-2" />
+    <Folder Include="System\TeLEOS-1" />
+    <Folder Include="types\" />
+    <Folder Include="types\DataCube-Landsat\" />
+    <Folder Include="types\DataCube-Sentinel\" />
+    <Folder Include="types\GeoScience-Landsat\" />
+    <Folder Include="types\Geoscience-Sentinel2\" />
+    <Folder Include="types\Geoscience\" />
+    <Folder Include="types\sample\" />
+    <Folder Include="types\SuperView-1\" />
+    <Folder Include="types\Triplesat\" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|VisualStudio|arcgispro-py3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="types\DataCube-Landsat\DataCube_L7_MS.rft.xml" />
+    <Content Include="types\DataCube-Landsat\DataCube_L7_MS_QA.rft.xml" />
+    <Content Include="types\DataCube-Landsat\DataCube_L8_MS.rft.xml" />
+    <Content Include="types\DataCube-Landsat\DataCube_L8_MS_QA.rft.xml" />
+    <Content Include="types\DataCube-Landsat\DataCube_MS_Composite.rft.xml" />
+    <Content Include="types\DataCube-Landsat\DataCube_MS_QA_Composite.rft.xml" />
+    <Content Include="types\DataCube-Sentinel\DataCube_S1_SAR.rft.xml" />
+    <Content Include="types\DataCube-Sentinel\DataCube_SAR_Composite.rft.xml" />
+    <Content Include="types\GeoScience-Landsat\Geoscience_ALL_Composite.rft.xml" />
+    <Content Include="types\GeoScience-Landsat\Geoscience_MS_ALL.rft.xml" />
+    <Content Include="types\GeoScience-Landsat\Geoscience_MS_Lambertian.rft.xml" />
+    <Content Include="types\GeoScience-Landsat\Geoscience_MS_NBAR.rft.xml" />
+    <Content Include="types\GeoScience-Landsat\Geoscience_MS_NBART.rft.xml" />
+    <Content Include="types\GeoScience-Landsat\Geoscience_MS_QA.rft.xml" />
+    <Content Include="types\GeoScience-Landsat\Geoscience_MS_Supplementary.rft.xml" />
+    <Content Include="types\GeoScience-Landsat\GS_Composite.rft.xml" />
+    <Content Include="types\GeoScience-Landsat\GS_Composite_7Bands.rft.xml" />
+    <Content Include="types\GeoScience-Landsat\GS_QA_Composite.rft.xml" />
+    <Content Include="types\GeoScience-Landsat\GS_Supplementary_Composite.rft.xml" />
+    <Content Include="types\Geoscience-Sentinel2\Geoscience_ALL_Composite.rft.xml" />
+    <Content Include="types\Geoscience-Sentinel2\Geoscience_MS_ALL.rft.xml" />
+    <Content Include="types\Geoscience-Sentinel2\Geoscience_MS_Lambertian.rft.xml" />
+    <Content Include="types\Geoscience-Sentinel2\Geoscience_MS_NBAR.rft.xml" />
+    <Content Include="types\Geoscience-Sentinel2\Geoscience_MS_NBART.rft.xml" />
+    <Content Include="types\Geoscience-Sentinel2\Geoscience_MS_QA.rft.xml" />
+    <Content Include="types\Geoscience-Sentinel2\Geoscience_MS_Supplementary.rft.xml" />
+    <Content Include="types\Geoscience-Sentinel2\GS_Composite.rft.xml" />
+    <Content Include="types\Geoscience-Sentinel2\GS_QA_Composite.rft.xml" />
+    <Content Include="types\Geoscience\Geoscience_MS_be.rft.xml" />
+    <Content Include="types\Geoscience\Geoscience_MS_fc.rft.xml" />
+    <Content Include="types\Geoscience\Geoscience_MS_mc.rft.xml" />
+    <Content Include="types\Geoscience\Geoscience_MS_wofs.rft.xml" />
+    <Content Include="types\Geoscience\Geoscience_MS_wofs_fs.rft.xml" />
+    <Content Include="types\Geoscience\Geoscience_MS_wofs_ss.rft" />
+    <Content Include="types\Geoscience\GS_Composite_be.rft.xml" />
+    <Content Include="types\Geoscience\GS_Composite_fc.rft.xml" />
+    <Content Include="types\Geoscience\GS_Composite_mc.rft.xml" />
+    <Content Include="types\Geoscience\GS_Composite_wofs_fs.rft.xml" />
+    <Content Include="types\Geoscience\GS_Composite_wofs_ss.rft.xml" />
+    <Content Include="types\sample\identity.rft.xml" />
+    <Content Include="types\sample\stretch.rft.xml" />
+    <Content Include="types\SuperView-1\SV1_stretch_allbands.rft.xml" />
+    <Content Include="types\SuperView-1\SV1_stretch_ms.rft.xml" />
+    <Content Include="types\SuperView-1\SV1_stretch_pan.rft.xml" />
+    <Content Include="types\SuperView-1\SV1_stretch_psh.rft.xml" />
+    <Content Include="types\Triplesat\TS_stretch_allbands.rft.xml" />
+    <Content Include="types\Triplesat\TS_stretch_ms.rft.xml" />
+    <Content Include="types\Triplesat\TS_stretch_pan.rft.xml" />
+    <Content Include="types\Triplesat\TS_stretch_psh.rft.xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>
