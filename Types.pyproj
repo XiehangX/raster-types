@@ -20,8 +20,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="GeoScene-Sentinel2\GeoScene_Sentinel2.py" />
-    <Compile Include="System\Deimos-2\Deimos_2.py" />
-    <Compile Include="System\TeLEOS-1\TeLEOS-1.py" />
     <Compile Include="types\DataCube-Landsat\DataCube-Landsat.py" />
     <Compile Include="types\DataCube-Sentinel\DataCube-Sentinel.py" />
     <Compile Include="types\GeoScience-Landsat\Geoscience-Landsat.py" />
@@ -33,11 +31,7 @@
     <Compile Include="types\Triplesat\TripleSat.py" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DataCube-Landsat" />
     <Folder Include="GeoScene-Sentinel2" />
-    <Folder Include="System\" />
-    <Folder Include="System\Deimos-2" />
-    <Folder Include="System\TeLEOS-1" />
     <Folder Include="types\" />
     <Folder Include="types\DataCube-Landsat\" />
     <Folder Include="types\DataCube-Sentinel\" />
