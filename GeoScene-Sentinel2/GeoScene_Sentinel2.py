@@ -29,84 +29,30 @@ class RasterTypeFactory():
         # Acquistion Date
         # Sensing Orbit
         # Cloud Cover
+        #sys_acquisitiondate	成像时间	Date	True			
+        #sys_sensorname	传感器名称	Text	True			255
+        #sys_productname	产品名称	Text	True			255
+        #sys_resolution	分辨率	Text	True			255
+        #sys_resolution_max	最大分辨率	Long	True			
+        #sys_resolution_min	最小分辨率	Long	True			
+        #sys_cloudcover	云量(%)	Double	True
+        
+        self.sensorName_auxField = arcpy.Field()
+        self.sensorName_auxField.name = 'SensorName'
+        self.sensorName_auxField.aliasName = 'Sensor Name'
+        self.sensorName_auxField.type = 'String'
+        self.sensorName_auxField.length = 50
 
-        self.datastrip_id_auxField = arcpy.Field()
-        self.datastrip_id_auxField.name = 'DatastripId'
-        self.datastrip_id_auxField.aliasName = 'Datastrip_Id'
-        self.datastrip_id_auxField.type = 'string'
-        self.datastrip_id_auxField.length = 200
+        self.acquisitiondate_auxField = arcpy.Field()
+        self.acquisitiondate_auxField.name = 'AcquisitionDate'
+        self.acquisitiondate_auxField.aliasName = 'Acquisition Date'
+        self.acquisitiondate_auxField.type = 'date'
 
-        self.clcoverp_auxField = arcpy.Field()
-        self.clcoverp_auxField.name = 'CloudCoverPercentage'
-        self.clcoverp_auxField.aliasName = 'Cloud Cover Percentage'
-        self.clcoverp_auxField.type = 'double'
-        self.clcoverp_auxField.precision = 5
-
-        self.dacq_auxField = arcpy.Field()
-        self.dacq_auxField.name = 'AcquisitionDate'
-        self.dacq_auxField.aliasName = 'Acquisition Date'
-        self.dacq_auxField.type = 'date'
-
-##        self.ancdp_auxField = arcpy.Field()
-##        self.ancdp_auxField.name = 'DegradedANC_DataPercentage'
-##        self.ancdp_auxField.aliasName = 'Degraded anc Data Percentage'
-##        self.ancdp_auxField.type = 'double'
-##        self.ancdp_auxField.length = 5
-
-        self.sunAzimuth_auxField = arcpy.Field()
-        self.sunAzimuth_auxField.name = 'SunAzimuth'
-        self.sunAzimuth_auxField.aliasName = 'Sun Azimuth'
-        self.sunAzimuth_auxField.type = 'Double'
-        self.sunAzimuth_auxField.precision = 5
-
-        self.sunElevation_auxField = arcpy.Field()
-        self.sunElevation_auxField.name = 'SunElevation'
-        self.sunElevation_auxField.aliasName = 'Sun Elevation'
-        self.sunElevation_auxField.type = 'Double'
-        self.sunElevation_auxField.precision = 5
-
-        self.reflconv_auxField = arcpy.Field()
-        self.reflconv_auxField.name = 'ReflectanceConversion'
-        self.reflconv_auxField.aliasName = 'Reflectance Conversion'
-        self.reflconv_auxField.type = 'double'
-        self.reflconv_auxField.precision = 50
-
-##        self.Orbit_auxField = arcpy.Field()
-##        self.Orbit_auxField.name = 'Orbit'
-##        self.Orbit_auxField.aliasName = 'Orbit'
-##        self.Orbit_auxField.type = 'float'
-##        self.Orbit_auxField.precision = 10
-
-##        self.Orbit_direction_auxField = arcpy.Field()
-##        self.Orbit_direction_auxField.name = 'OrbitDirection'
-##        self.Orbit_direction_auxField.aliasName = 'Orbit Direction'
-##        self.Orbit_direction_auxField.type = 'string'
-##        self.Orbit_direction_auxField.precision = 200
-
-        self.processingLevel_auxField = arcpy.Field()
-        self.processingLevel_auxField.name = 'ProcessingLevel'
-        self.processingLevel_auxField.aliasName = 'Processing Level'
-        self.processingLevel_auxField.type = 'String'
-        self.processingLevel_auxField.length = 200
-
-        self.prod_format_auxField = arcpy.Field()
-        self.prod_format_auxField.name = 'ProductFormat'
-        self.prod_format_auxField.aliasName = 'Product Format'
-        self.prod_format_auxField.type = 'String'
-        self.prod_format_auxField.length = 200
-
-
-##        self.prod_uri_auxField = arcpy.Field()
-##        self.prod_uri_auxField.name = 'ProductURI'
-##        self.prod_uri_auxField.aliasName = 'Product URI'
-##        self.prod_uri_auxField.type = 'String'
-##        self.prod_uri_auxField.length = 200
-
-        self.tile_id_auxField = arcpy.Field()
-        self.tile_id_auxField.name = 'TileID'
-        self.tile_id_auxField.aliasName = 'Tile ID'
-        self.tile_id_auxField.type = 'String'
-        self.tile_id_auxField.length = 200
+        self.cloudcover_auxField = arcpy.Field()
+        self.cloudcover_auxField.name = 'CloudCoverPercentage'
+        self.cloudcover_auxField.aliasName = 'Cloud Cover Percentage'
+        self.cloudcover_auxField.type = 'double'
+        self.cloudcover_auxField.precision = 5
 
         return [
             {
@@ -480,25 +426,9 @@ class RasterTypeFactory():
                 ,
                 # GET THE CORRECT BAND INDEX , MIN MAX WAVELENGTH
 
-                'fields': [self.datastrip_id_auxField,
-                           self.clcoverp_auxField,
-                           # self.datatake_identifier_auxField,
-                           self.dacq_auxField,
-                           # self.ancdp_auxField,
-                           self.sunAzimuth_auxField,
-                           self.sunElevation_auxField,
-                           # self.msidp_auxField,
-                           self.reflconv_auxField,
-                           # self.saturated_auxField,
-                           # self.tile_ref_auxField,
-                           # self.Orbit_auxField,
-                           # self.Orbit_direction_auxField,
-                           # self.platform_code_auxField,
-                           # self.proc_baseline_auxField,
-                           self.processingLevel_auxField,
-                           self.prod_format_auxField,
-                           # self.prod_uri_auxField,
-                           self.tile_id_auxField]
+                'fields': [self.sensorName_auxField,
+                           self.acquisitiondate_auxField,
+                           self.cloudcover_auxField]
             }
         ]
 
