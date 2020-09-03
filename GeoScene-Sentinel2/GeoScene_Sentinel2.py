@@ -54,6 +54,24 @@ class RasterTypeFactory():
         self.cloudcover_auxField.type = 'double'
         self.cloudcover_auxField.precision = 5
 
+        self.resolution_auxField = arcpy.Field()
+        self.resolution_auxField.name = 'Resolution'
+        self.resolution_auxField.aliasName = 'Resolution'
+        self.resolution_auxField.type = 'String'
+        self.resolution_auxField.precision = 50
+        
+        self.resolutionmax_auxField = arcpy.Field()
+        self.resolutionmax_auxField.name = 'ResolutionMax'
+        self.resolutionmax_auxField.aliasName = 'Max Resolution'
+        self.resolutionmax_auxField.type = 'double'
+        self.resolutionmax_auxField.precision = 8
+
+        self.resolutionmin_auxField = arcpy.Field()
+        self.resolutionmin_auxField.name = 'ResolutionMin'
+        self.resolutionmin_auxField.aliasName = 'Min Resolution'
+        self.resolutionmin_auxField.type = 'double'
+        self.resolutionmin_auxField.precision = 8
+
         return [
             {
                 'rasterTypeName': 'GeoScene-Sentinel2',
@@ -69,25 +87,16 @@ class RasterTypeFactory():
                 'supportedUriFilters': [
                     {
                         'name': 'LEVEL1C',
-                        'allowedProducts': [
-                                'L1C'
-                        ],
+                        'allowedProducts': ['L1C'],
                         'supportsOrthorectification': True,
                         'enableClipToFootprint': True,
-                        'supportedTemplates': [
-                            'GeoScene_ALL_Composite'
-                        ]
+                        'supportedTemplates': ['GeoScene_ALL_Composite']
                     },
-
                     {
                         'name': 'LEVEL2A',
-                        'allowedProducts': [
-                                'L2A'
-                        ],
+                        'allowedProducts': ['L2A'],
                         'supportsOrthorectification': True,
-                        'supportedTemplates': [
-                            'GeoScene_ALL_Composite'
-                        ]
+                        'supportedTemplates': ['GeoScene_ALL_Composite']
                     }
                 ],
                 'processingTemplates': [
@@ -421,7 +430,10 @@ class RasterTypeFactory():
 
                 'fields': [self.sensorName_auxField,
                            self.acquisitiondate_auxField,
-                           self.cloudcover_auxField]
+                           self.cloudcover_auxField,
+                           self.resolution_auxField,
+                           self.resolutionmax_auxField,
+                           self.resolutionmin_auxField]
             }
         ]
 
