@@ -20,6 +20,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="GeoScene-Sentinel2\GeoScene_Sentinel2.py" />
+    <Compile Include="System\Deimos-2\Deimos_2.py" />
+    <Compile Include="System\TeLEOS-1\TeLEOS-1.py" />
     <Compile Include="types\DataCube-Landsat\DataCube-Landsat.py" />
     <Compile Include="types\DataCube-Sentinel\DataCube-Sentinel.py" />
     <Compile Include="types\GeoScience-Landsat\Geoscience-Landsat.py" />
@@ -32,6 +34,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="GeoScene-Sentinel2" />
+    <Folder Include="System\" />
+    <Folder Include="System\Deimos-2\" />
+    <Folder Include="System\TeLEOS-1\" />
     <Folder Include="types\" />
     <Folder Include="types\DataCube-Landsat\" />
     <Folder Include="types\DataCube-Sentinel\" />
@@ -46,6 +51,14 @@
     <InterpreterReference Include="Global|VisualStudio|arcgispro-py3" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="GeoScene-Sentinel2\GeoScene_ALL_Composite.rft.xml" />
+    <Content Include="GeoScene-Sentinel2\identity.rft.xml" />
+    <Content Include="GeoScene-Sentinel2\stretch.rft.xml" />
+    <Content Include="System\Deimos-2\D2_stretch_allbands.rft.xml" />
+    <Content Include="System\Deimos-2\D2_stretch_ms.rft.xml" />
+    <Content Include="System\Deimos-2\D2_stretch_pan.rft.xml" />
+    <Content Include="System\Deimos-2\D2_stretch_psh.rft.xml" />
+    <Content Include="System\TeLEOS-1\TeLEOS-1_stretch_pan.rft.xml" />
     <Content Include="types\DataCube-Landsat\DataCube_L7_MS.rft.xml" />
     <Content Include="types\DataCube-Landsat\DataCube_L7_MS_QA.rft.xml" />
     <Content Include="types\DataCube-Landsat\DataCube_L8_MS.rft.xml" />
