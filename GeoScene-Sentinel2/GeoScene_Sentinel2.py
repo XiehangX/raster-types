@@ -66,37 +66,30 @@ class RasterTypeFactory():
                 'dataSourceFilter': 'MTD_MSI*.xml',
                 'crawlerName': 'GeoSceneSentinelCrawler',
                 # 'productDefinitionName': 'Geoscene-Sentinel',
-                # 'supportedUriFilters': [
-                #     {
-                #         'name': 'Level2',
-                #         'allowedProducts': [
-                #                 'S2MSIARD',
-                #                 'ard'
-                #         ],
-                #         'supportsOrthorectification': True,
-                #         'enableClipToFootprint': True,
-                #         'supportedTemplates': [
-                #             'Geoscience_MS_ALL',
-                #             'Geoscience_MS_Supplementary',
-                #             'Geoscience_MS_QA',
-                #             'Geoscience_MS_Lambertian',
-                #             'Geoscience_MS_NBAR',
-                #             'Geoscience_MS_NBART'
-                #         ]
-                #     },
+                'supportedUriFilters': [
+                    {
+                        'name': 'LEVEL1C',
+                        'allowedProducts': [
+                                'L1C'
+                        ],
+                        'supportsOrthorectification': True,
+                        'enableClipToFootprint': True,
+                        'supportedTemplates': [
+                            'GeoScene_ALL_Composite'
+                        ]
+                    },
 
-                #     {
-                #         'name': 'Level1',
-                #         'allowedProducts': [
-                #                 'S2MSIARD',
-                #                 'ard'
-                #         ],
-                #         'supportsOrthorectification': True,
-                #         'supportedTemplates': [
-                #             'Geoscience_MS_Lambertian'
-                #         ]
-                #     }
-                # ],
+                    {
+                        'name': 'LEVEL2A',
+                        'allowedProducts': [
+                                'L2A'
+                        ],
+                        'supportsOrthorectification': True,
+                        'supportedTemplates': [
+                            'GeoScene_ALL_Composite'
+                        ]
+                    }
+                ],
                 'processingTemplates': [
                     {
                         'name': 'GeoScene_ALL_Composite',
