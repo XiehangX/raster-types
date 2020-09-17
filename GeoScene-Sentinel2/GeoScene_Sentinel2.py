@@ -13,7 +13,15 @@
 # limitations under the License.
 #------------------------------------------------------------------------------
 
+import os
+import glob
 import arcpy
+from functools import lru_cache
+
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
 
 
 class DataSourceType():
@@ -442,7 +450,12 @@ class GeoSceneSentinelBuilder():
 
     def __init__(self, **kwargs):
         self.RasterTypeName = 'GeoScene Sentinel2'
+        self.utilities = Utilities()
         print('init')
+        
+    def canOpen(self, datasetPath):
+        # Open the datasetPath and check if the metadata file contains the string TELEOS
+        return self.utilities.isTarget(datasetPath)
 
     def build(self, itemURI):
         
@@ -480,7 +493,6 @@ class GeoSceneSentinelCrawler():
             self.recurse = crawlerProperties['recurse']
             self.filter = crawlerProperties['filter']
         except BaseException:
-            ##            print ('Error in crawler properties')
             return None
         self.run = 1
         if (self.filter is (None or "")):
@@ -490,63 +502,24 @@ class GeoSceneSentinelCrawler():
         except StopIteration:
             return None
 
-        try:
-            self.tagGenerator = self.createTagGenerator()  # reinitialize tag generator
-        except StopIteration:
-            return None
-
-    def createTagGenerator(self):
-        for tag in [
-            "MS",
-            "Supplementary",
-            "Lambertian",
-            "QA",
-            "NBART",
-                "NBAR"]:  # Landsat8 L2 product have 5 types of sub-products
-            yield tag
-
     def createGenerator(self):
         for path in self.paths:
-            if (path.startswith("http") or (path.startswith("s3"))):
-                yield path
-
-            elif (not os.path.exists(path)):
+            if not os.path.exists(path):
                 continue
-
-            elif (os.path.isdir(path)):
-                if (self.recurse):
+            
+            if os.path.isdir(path):
+                if self.recurse:
                     for root, dirs, files in (os.walk(path)):
                         for file in (files):
-                            if (file.endswith(".yaml")):
+                            if file.endswith(".xml") and file.startswith("MTD_MSIL"):
                                 filename = os.path.join(root, file)
                                 yield filename
                 else:
                     filter_to_scan = path + os.path.sep + self.filter
                     for filename in glob.glob(filter_to_scan):
                         yield filename
-
-            elif (path.endswith(".csv")):
-                with open(path, 'r') as csvfile:
-                    reader = csv.reader(csvfile)
-                    rasterFieldIndex = -1
-                    firstRow = next(reader)
-                    # Check for the 'raster' field in the csv file, if not
-                    # present take the first field as input data
-                    for attribute in firstRow:
-                        if (attribute.lower() == 'raster'):
-                            rasterFieldIndex = firstRow.index(attribute)
-                            break
-                    if (rasterFieldIndex == -1):
-                        csvfile.seek(0)
-                        rasterFieldIndex = 0
-                    for row in reader:
-                        filename = row[rasterFieldIndex]
-                        if (filename.startswith("http")or (filename.startswith(
-                                "s3"))):  # if the csv list contains a list of s3 urls
-                            yield filename
-                        elif (filename.endswith(".yaml") and os.path.exists(filename)):
-                            yield filename
-            elif (path.endswith(".yaml")):
+                        
+            elif path.endswith(".xml") and path.startswith("MTD_MSIL"):
                 yield path
 
     def __iter__(self):
@@ -557,107 +530,90 @@ class GeoSceneSentinelCrawler():
         return self.getNextUri()
 
     def getNextUri(self):
+        
         try:
-            if (self.run == 1):
-                try:
-                    self.curPath = next(self.pathGenerator)
-                    self.run = 10
-                except BaseException:
-                    return None
-            if ((self.curPath).startswith("http:")):
-                doc = self.utils.readYamlS3(self.curPath)
-            elif ((self.curPath).startswith("s3:")):
-                _yamlpath = self.curPath
-                # giving a start index of 5 will ensure that the / from s3://
-                # is not returned.
-                index = _yamlpath.find("/", 5)
-                # First 5 letters will always be s3://
-                bucketname = _yamlpath[5:index]
-                key = _yamlpath[index + 1:]
-                doc = self.utils.readYamlS3_boto3(bucketname, key)
-            else:
-                doc = self.utils.readYaml(self.curPath)
-            productName = self.utils.getProductName(doc)
-            processingLevel = self.utils.getProcessingLevel(doc)
-            if (processingLevel == "Level-2"):
-                try:
-                    curTag = next(self.tagGenerator)
-                except StopIteration:
-                    try:
-                        self.tagGenerator = self.createTagGenerator()  # reinitialize tag generator
-                    except StopIteration:
-                        return None
-                    try:
-                        self.curPath = next(self.pathGenerator)
-                    except BaseException:
-                        return None
-                    curTag = next(self.tagGenerator)
-                    if ((self.curPath).startswith(
-                            "http:")):  # this is needed to get the product name from the new path
-                        doc = self.utils.readYamlS3(self.curPath)
-                    else:
-                        doc = self.utils.readYaml(self.curPath)
-                    productName = self.utils.getProductName(doc)
+            self.curPath = next(self.pathGenerator)
+            curTag = self.utils.getTag(self.curPath)
+            productName = self.utils.getProductName(self.curPath)
+            
+            if curTag is None or productName is None:
+                return self.getNextUri()
 
-            else:
-                self.curPath = next(self.pathGenerator)
-                curTag = "MS"
         except StopIteration:
             return None
+
         uri = {
-            'path': self.curPath,
-            'displayName': os.path.split(os.path.dirname(self.curPath))[1],
-            'tag': curTag,
-            'groupName': os.path.split(os.path.dirname(self.curPath))[1],
-            'productName': productName
-        }
+                'path': self.curPath,
+                'displayName': os.path.basename(self.curPath),
+                'tag': curTag,
+                'groupName': os.path.split(os.path.dirname(self.curPath))[1],
+                'productName': productName
+              }
+
         return uri
 
-
 class Utilities():
+    
+    def isTarget(self, path):
 
-    def readYaml(self, path):  # to read the yaml file located locally.
-        try:
-            with open(path, 'r') as q:
-                try:
-                    doc = (yaml.load(q))
-                except yaml.YAMLError as exc:
-                    raise
-                return doc
-        except BaseException:
-            raise
+        result = False
+        tree = cacheElementTree(path)
+        if tree is not None:
+            generalInfo = self.__getGeneralInfoElement(tree)
+            if generalInfo is not None:
+                element = generalInfo.find('Product_Info/PRODUCT_TYPE')
+                if element is not None and  'S2MSI' in element.text:
+                    result = True
+        return result
 
-    def readYamlS3(self, path):  # to read the yaml file located on S3
-        page = requests.get(path, stream=True, timeout=None)
-        try:
-            doc = (yaml.load(page.content))
-        except yaml.YAMLError as exc:
-            raise
-        return doc
+    def getTag(self, path):
 
-    def readYamlS3_boto3(self, bucket, path):  # to read the yaml file located on S3
-        client = boto3.client('s3')
-        try:
-            page = client.get_object(Bucket=bucket, Key=path)
-            doc = (yaml.load(page['Body'].read()))
-        except yaml.YAMLError as exc:
-            raise
-        return doc
-
-    def getProductName(self, doc):
-        try:
-            productName = doc['product_type']
-            if (productName is not None):
-                return productName
-        except BaseException:
-            return None
+        if self.isTarget(path):
+            return 'ALLBANDS'
         return None
 
-    def getProcessingLevel(self, doc):
-        try:
-            processingLevel = doc['processing_level']
-            if (processingLevel is not None):
-                return processingLevel
-        except BaseException:
-            return None
+    def __getGeneralInfoElement(self,tree):
+        
+        if tree is not None:
+            root = tree.getroot()
+            if root is None:
+                return result
+            for child in root:
+                if 'General_Info' in child.tag:
+                    return child
         return None
+    
+    def getProductName(self, path):
+        """        
+        get Product Type
+        :param path: MTD_MSI*.xml
+        :return:
+        """
+        tree = cacheElementTree(path)
+        if tree is not None:
+            generalInfo = self.__getGeneralInfoElement(tree)
+            if generalInfo is not None:
+                product = generalInfo.find('Product_Info/PRODUCT_TYPE')
+                if product is not None:
+                    return product.text
+        return None
+
+
+    #def getProcessingLevel(self, doc):
+    #    try:
+    #        processingLevel = doc['processing_level']
+    #        if (processingLevel is not None):
+    #            return processingLevel
+    #    except BaseException:
+    #        return None
+    #    return None
+    
+@lru_cache(maxsize=128)
+def cacheElementTree(path):
+    try:
+        tree = ET.parse(path)
+    except ET.ParseError as e:
+        print("Exception while parsing {0}\n{1}".format(path,e))
+        return None
+
+    return tree
