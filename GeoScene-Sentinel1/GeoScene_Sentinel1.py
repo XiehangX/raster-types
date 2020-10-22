@@ -135,53 +135,41 @@ class GeoSceneSentinelBuilder():
                 return None
 
             tree = cacheElementTree(path)
-
             builtItem = {}
+
+            #rasterInfo = {}
+            ##rasterInfo['pixelType'] = pixelType
+            ##rasterInfo['nCols'] = nCols
+            ##rasterInfo['nRows'] = nRows
+            ##rasterInfo['nBands'] = noBands
+            #rasterInfo['spatialReference'] = 4326
+            #rasterInfo['XMin'] = 111.711006
+            #rasterInfo['YMin'] = 23.911518
+            #rasterInfo['XMax'] = 114.473335
+            #rasterInfo['YMax'] = 24.327019
+            #builtItem['raster'] = {'uri': self.utilities.getQuickLook(path), 'rasterInfo': rasterInfo}
+
             builtItem['raster'] = {'uri': self.utilities.getQuickLook(path)}
             builtItem['itemUri'] = itemURI
 
-            builtItem['spatialReference'] = 4326            
-            builtItem['footprint'] = '23.911518,111.711006 24.327019,114.147614 22.646614,114.473335 22.227821,112.068756'
+            vertex_array = arcpy.Array()
+            all_vertex = '23.911518,111.711006 24.327019,114.147614 22.646614,114.473335 22.227821,112.068756'.split(" ")
+            if all_vertex is not None:
+                for vertex in all_vertex:
+                    point = vertex.split(',')
+                    vertex_array.add(arcpy.Point(float(point[1]), float(point[0])))
+            footprint_geometry = arcpy.Polygon(vertex_array)
+            # builtItem['footprint'] = footprint_geometry
 
+            
+            builtItem['spatialReference'] = int('4326')
+            
+            metadata = {}
+            metadata['sensorname'] = self.utilities.getSensorName(path)
+            metadata['acquisitiondate'] = '2020-10-21'
 
-            #metadataSectionNode = self.utilities.getInfoElement(tree,'metadataSection')
-            #if metadataSectionNode is not None:
+            builtItem['keyProperties'] = metadata
 
-            #    for metadataObj in root.iter("metadataObject"):
-            #        if meatadataObj.get('ID') == 'platform':
-            #            xmlDataNode = meatadataObj.find('metadataWrap/xmlData')
-            #            if xmlDataNode is not None:
-            #                for child in xmlDataNode:
-            #                    print(child.tag)
-            #            break;
-
-            #    element = generalInfoNode.find('platform')
-            #    if element is not None:
-            #        builtItem['sensorname'] = element.text
-
-            #    element = generalInfoNode.find('Product_Info/Datatake/DATATAKE_SENSING_START')
-            #    if element is not None:
-            #        builtItem['acquisitiondate'] = element.text[0:19].replace("T", " ")
-
-            #    #element = generalInfoNode.find('Product_Info/Datatake/SENSING_ORBIT_NUMBER')
-            #    #if element is not None:
-            #    #    builtItem['SensingOrbit'] = element.text
-                
-            #qualityInfoNode = self.utilities.getInfoElement(tree,'Quality_Indicators_Info')
-            #if qualityInfoNode is not None:
-            #    element = qualityInfoNode.find('Cloud_Coverage_Assessment')
-            #    if element is not None:
-            #        builtItem['cloudcover'] = element.text
-                    
-            #geometricInfoNode = self.utilities.getInfoElement(tree,'Geometric_Info')
-            #if qualityInfoNode is not None:
-            #    element = geometricInfoNode.find('Product_Footprint/Product_Footprint/Global_Footprint/EXT_POS_LIST')
-            #    if element is not None:
-            #        builtItem['footprint'] = element.text
-                    
-            #builtItem['resolution'] = '10/20/60'
-            #builtItem['resolutionmin'] = 10
-            #builtItem['resolutionmax'] = 60                
             builtItemsList = list()
             builtItemsList.append(builtItem)
             return builtItemsList
