@@ -129,14 +129,14 @@ class RasterTypeFactory():
 class GeoSceneSentinelBuilder():
 
     def __init__(self, **kwargs):
-        self.RasterTypeName = 'GeoScene-Sentinel1'
+        # self.RasterTypeName = 'GeoScene-Sentinel1'
         self.utilities = Utilities()
         
     def canOpen(self, datasetPath):
         # Open the datasetPath and check if the metadata file contains the string TELEOS
         return self.utilities.isTarget(datasetPath)
 
-    def build(self, itemURI):
+    def build(self, itemURI): 
         
         if len(itemURI) <= 0:
             return None
@@ -149,7 +149,9 @@ class GeoSceneSentinelBuilder():
                 return None
 
             tree = cacheElementTree(path)
-            builtItem = {}
+            if tree is None:
+                return None
+
 
             #rasterInfo = {}
             ##rasterInfo['pixelType'] = pixelType
@@ -162,28 +164,42 @@ class GeoSceneSentinelBuilder():
             #rasterInfo['XMax'] = 114.473335
             #rasterInfo['YMax'] = 24.327019
             #builtItem['raster'] = {'uri': self.utilities.getQuickLook(path), 'rasterInfo': rasterInfo}
-
-            builtItem['raster'] = {'uri': self.utilities.getQuickLook(path)}
-            builtItem['itemUri'] = itemURI
-
-            vertex_array = arcpy.Array()
-            footprintCoords = self.utilities.getFootPrintCoords(path)
-            if footprintCoords is not None:
-                all_vertex = footprintCoords.split(" ")
-                for vertex in all_vertex:
-                    point = vertex.split(',')
-                    vertex_array.add(arcpy.Point(float(point[1]), float(point[0])))
-            footprint_geometry = arcpy.Polygon(vertex_array)
-            builtItem['footprint'] = footprint_geometry
             
-            sr = self.utilities.getFootPrintSR(path)
-            builtItem['spatialReference'] = int(sr)
+            quicklookPath = None
+            quicklookNode = self.utilities.getDataObjectByID(tree,'quicklook')
+            if quicklookNode is not None:
+                href = quicklookNode.find('byteStream/fileLocation').get('href')
+                quicklookPath = (os.path.dirname(path) if len(os.path.dirname(path)) != 0 else '.') + '/' + href
             
+                
+            footprintCoords = None
+            spatialReference = None
+            namespaces = self.utilities.getNamespace(path)
+            metadataObjectNode = self.utilities.getMetadataObjectByID(tree,'measurementFrameSet')
+            if metadataObjectNode is not None:
+                footprintNode = metadataObjectNode.find('metadataWrap/xmlData/safe:frameSet/safe:frame/safe:footPrint',namespaces)
+                spatialReference = int(footprintNode.get('srsName').split('#')[1]) if footprintNode is not None else None
+                coordsNode = metadataObjectNode.find('metadataWrap/xmlData/safe:frameSet/safe:frame/safe:footPrint/gml:coordinates',namespaces)
+                footprintCoords = self.utilities.getGeometryFromCoords(coordsNode.text) if coordsNode is not None else None
+            
+            sensorName = None
+            platformNode = self.utilities.getMetadataObjectByID(tree,'platform')
+            if platformNode is not None:
+                familyName = platformNode.find('metadataWrap/xmlData/safe:platform/safe:familyName',namespaces)
+                number = platformNode.find('metadataWrap/xmlData/safe:platform/safe:number',namespaces)
+                sensorName = familyName.text + number.text if familyName is not None and number is not None else None
+
+            acquistionDate = None
+            acquisitionPeriodNode = self.utilities.getMetadataObjectByID(tree,'acquisitionPeriod')
+            if acquisitionPeriodNode is not None:
+                acquisitionPeriod = acquisitionPeriodNode.find('metadataWrap/xmlData/safe:acquisitionPeriod/safe:startTime',namespaces)
+                acquistionDate = acquisitionPeriod.text[0:19].replace("T", " ") if acquisitionPeriod is not None else None
+                
             metadata = {}
-            metadata['SensorName'] = self.utilities.getSensorName(path)
-            metadata['AcquisitionDate'] = self.utilities.getAcquistionDate(path)
             metadata['DirName'] = os.path.dirname(path)
-            
+            metadata['SensorName'] = sensorName
+            metadata['AcquisitionDate'] = acquistionDate
+
             #quicklookpath = self.utilities.getQuickLook(path)
             #f = open(os.path.abspath(quicklookpath), "rb")
             #img = f.read()
@@ -194,7 +210,12 @@ class GeoSceneSentinelBuilder():
             # img.decode('UTF-8','strict'))
             # metadata['previewImage'] = img.decode('UTF-8','strict')
             # mdb.escape_string(img)
-
+            
+            builtItem = {}
+            builtItem['itemUri'] = itemURI
+            builtItem['raster'] = {'uri': quicklookPath}
+            builtItem['footprint'] = footprintCoords
+            builtItem['spatialReference'] = spatialReference
             builtItem['keyProperties'] = metadata
 
             builtItemsList = list()
@@ -277,9 +298,9 @@ class Utilities():
     #__namespace : None
     #__tree: None
 
-    def __init__(self):
-        self.__tree = None
-        self.__namespace = None
+    #def __init__(self):
+    #    self.__tree = None
+    #    self.__namespace = None
     
     def isTarget(self, path):
 
@@ -296,11 +317,18 @@ class Utilities():
         return None
     
     def getTree(self,path):
-        if self.__tree is None:
-            self.__tree = cacheElementTree(path)
-        return self.__tree
+        #if self.__tree is None:
+        #    self.__tree = cacheElementTree(path)
+        #return self.__tree
+        return cacheElementTree(path)
+    
+    def getNamespace(self,path):
+        #if self.__namespace is None:
+        #    self.__namespace = dict([node for _, node in ET.iterparse(path, events=['start-ns'])])
+        #return self.__namespace
+        return dict([node for _, node in ET.iterparse(path, events=['start-ns'])])
 
-    def __getMetadataObjectByID(self,tree,id):
+    def getMetadataObjectByID(self,tree,id):
         
         if tree is not None:
             root = tree.getroot()
@@ -315,58 +343,26 @@ class Utilities():
         
         if tree is not None:
             root = tree.getroot()
-            metadataObjs = root.findall('dataObjectSection/dataObject')
-            for metadataObj in metadataObjs:
-                if metadataObj.get('ID') == id:
-                    return metadataObj
+            dataObjs = root.findall('dataObjectSection/dataObject')
+            for dataObj in dataObjs:
+                if dataObj.get('ID') == id:
+                    return dataObj
         return None
 
-    def getQuickLook(self,path):
+    def getGeometryFromCoords(self, coords):
+
+        vertex_array = arcpy.Array()
+        all_vertex = coords.split(" ")
+        for vertex in all_vertex:
+            point = vertex.split(',')
+            vertex_array.add(arcpy.Point(float(point[1]), float(point[0])))
+        footprint_geometry = arcpy.Polygon(vertex_array)
+        return footprint_geometry
         
-        tree = self.getTree(path)
-        if tree is not None:
-            quicklookNode = self.getDataObjectByID(tree,'quicklook')
-            if quicklookNode is not None:
-                href = quicklookNode.find('byteStream/fileLocation').get('href')                
-                #os.chdir(path)
-                #quicklookPath = os.path.abspath(href)
-                quicklookPath = os.path.dirname(path) if len(os.path.dirname(path)) != 0 else '.'
-                return quicklookPath + '/' + href
-        return None
-    
-    def getNamespace(self,path):
-        if self.__namespace is None:
-            self.__namespace = dict([node for _, node in ET.iterparse(path, events=['start-ns'])])
-        return self.__namespace
-    
-    def getFootPrintCoords(self, path):
-        tree = self.getTree(path)
-        if tree is not None:
-            metadataObjectNode = self.__getMetadataObjectByID(tree,'measurementFrameSet')
-            namespaces = self.getNamespace(path)
-            if metadataObjectNode is not None:
-                xmlData = metadataObjectNode.find('metadataWrap/xmlData')
-                coords = xmlData.find('safe:frameSet/safe:frame/safe:footPrint/gml:coordinates',namespaces)
-                if coords is not None:
-                    return coords.text
-        return None
-
-    def getFootPrintSR(self, path):
-        tree = self.getTree(path)
-        if tree is not None:
-            metadataObjectNode = self.__getMetadataObjectByID(tree,'measurementFrameSet')
-            namespaces = self.getNamespace(path)
-            if metadataObjectNode is not None:
-                xmlData = metadataObjectNode.find('metadataWrap/xmlData')
-                footprint = xmlData.find('safe:frameSet/safe:frame/safe:footPrint',namespaces)
-                if footprint is not None:
-                    return footprint.get('srsName').split('#')[1]
-        return None
-    
     def getSensorName(self, path):
         tree = self.getTree(path)
         if tree is not None:
-            metadataObjectNode = self.__getMetadataObjectByID(tree,'platform')
+            metadataObjectNode = self.getMetadataObjectByID(tree,'platform')
             namespaces = self.getNamespace(path)
             if metadataObjectNode is not None:
                 xmlData = metadataObjectNode.find('metadataWrap/xmlData')
@@ -377,18 +373,6 @@ class Utilities():
                     return sensorName
         return None
 
-    def getAcquistionDate(self, path):
-        tree = self.getTree(path)
-        if tree is not None:
-            metadataObjectNode = self.__getMetadataObjectByID(tree,'acquisitionPeriod')
-            namespaces = self.getNamespace(path)
-            if metadataObjectNode is not None:
-                xmlData = metadataObjectNode.find('metadataWrap/xmlData')
-                acquisitionPeriod = xmlData.find('safe:acquisitionPeriod/safe:startTime',namespaces)
-                if acquisitionPeriod is not None:
-                    return acquisitionPeriod.text[0:19].replace("T", " ")
-        return None
-
     def getProductName(self, path):
         """        
         get Product Type
@@ -397,22 +381,11 @@ class Utilities():
         """
         tree = self.getTree(path)
         if tree is not None:
-            metadataObjectNode = self.__getMetadataObjectByID(tree,'generalProductInformation')
+            metadataObjectNode = self.getMetadataObjectByID(tree,'generalProductInformation')
             namespaces = self.getNamespace(path)
             if metadataObjectNode is not None:
-                xmlData = metadataObjectNode.find('metadataWrap/xmlData')
-                productType = xmlData.find('s1sarl1:standAloneProductInformation/s1sarl1:productType',namespaces).text
+                productType = metadataObjectNode.find('metadataWrap/xmlData/s1sarl1:standAloneProductInformation/s1sarl1:productType',namespaces).text
                 return productType
-        return None
-
-    def getInfoElement(self,tree,metadataObjectId):
-        if tree is not None:
-            root = tree.getroot()
-            if root is None:
-                return result
-            for child in root:
-                if infoTag in child.tag:
-                    return child
         return None
     
 @lru_cache(maxsize=128)
