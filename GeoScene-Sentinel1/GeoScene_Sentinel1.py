@@ -51,16 +51,24 @@ class RasterTypeFactory():
         self.acquisitionDate_auxField.aliasName = 'Acquisition Date'
         self.acquisitionDate_auxField.type = 'date'
         
-        self.dirName_auxField = arcpy.Field()
-        self.dirName_auxField.name = 'DirName'
-        self.dirName_auxField.aliasName = 'Dir Name'
-        self.dirName_auxField.type = 'String'
-        self.dirName_auxField.length = 2048
+        #self.dirName_auxField = arcpy.Field()
+        #self.dirName_auxField.name = 'DirName'
+        #self.dirName_auxField.aliasName = 'Dir Name'
+        #self.dirName_auxField.type = 'String'
+        #self.dirName_auxField.length = 2048
         
-        #self.previewImage_auxField = arcpy.Field()
-        #self.previewImage_auxField.name = 'PreviewImage'
-        #self.previewImage_auxField.aliasName = 'Preview Image'
-        #self.previewImage_auxField.type = 'Blob'
+        #self.zipName_auxField = arcpy.Field()
+        #self.zipName_auxField.name = 'ZipName'
+        #self.zipName_auxField.aliasName = 'Zip Name'
+        #self.zipName_auxField.type = 'String'
+        #self.zipName_auxField.length = 2048
+        
+        self.quicklookPath_auxField = arcpy.Field()
+        self.quicklookPath_auxField.name = 'QuickLookPath'
+        self.quicklookPath_auxField.aliasName = 'Quick Look'
+        self.quicklookPath_auxField.type = 'String'
+        self.quicklookPath_auxField.length = 2048
+        # self.quicklookPath_auxField.type = 'Blob'
         
 
         return [
@@ -120,7 +128,10 @@ class RasterTypeFactory():
 
                     'fields': [self.sensorName_auxField,
                                self.acquisitionDate_auxField,
-                               self.dirName_auxField]
+                               self.quicklookPath_auxField]
+                               # ,
+                               #self.dirName_auxField,
+                               #self.zipName_auxField
                                 #,self.previewImage_auxField
                 }
                ]
@@ -169,7 +180,7 @@ class GeoSceneSentinelBuilder():
             quicklookNode = self.utilities.getDataObjectByID(tree,'quicklook')
             if quicklookNode is not None:
                 href = quicklookNode.find('byteStream/fileLocation').get('href')
-                quicklookPath = (os.path.dirname(path) if len(os.path.dirname(path)) != 0 else '.') + '/' + href
+                quicklookPath = os.path.abspath((os.path.dirname(path) if len(os.path.dirname(path)) != 0 else '.') + '/' + href)
             
                 
             footprintCoords = None
@@ -195,10 +206,13 @@ class GeoSceneSentinelBuilder():
                 acquisitionPeriod = acquisitionPeriodNode.find('metadataWrap/xmlData/safe:acquisitionPeriod/safe:startTime',namespaces)
                 acquistionDate = acquisitionPeriod.text[0:19].replace("T", " ") if acquisitionPeriod is not None else None
                 
+
             metadata = {}
-            metadata['DirName'] = os.path.dirname(path)
+            #metadata['DirName'] = os.path.dirname(path)
+            #metadata['ZipName'] = os.path.dirname(path).replace('.SAFE','.zip')
             metadata['SensorName'] = sensorName
             metadata['AcquisitionDate'] = acquistionDate
+            metadata['QuickLookPath'] = quicklookPath
 
             #quicklookpath = self.utilities.getQuickLook(path)
             #f = open(os.path.abspath(quicklookpath), "rb")
@@ -261,6 +275,7 @@ class GeoSceneSentinelCrawler():
                         yield filename
 
             elif path.endswith(".safe") and "manifest.safe" in path:
+                # TODO ADD XML 
                 yield path
 
     def __iter__(self):
@@ -313,7 +328,7 @@ class Utilities():
     def getTag(self, path):
 
         if self.isTarget(path):
-            return 'SAR'
+            return 'SAR-Preview'
         return None
     
     def getTree(self,path):
