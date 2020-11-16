@@ -44,25 +44,22 @@ class RasterTypeFactory():
         self.acquisitionDate_auxField.aliasName = 'Acquisition Date'
         self.acquisitionDate_auxField.type = 'date'
         
-        #self.dirName_auxField = arcpy.Field()
-        #self.dirName_auxField.name = 'DirName'
-        #self.dirName_auxField.aliasName = 'Dir Name'
-        #self.dirName_auxField.type = 'String'
-        #self.dirName_auxField.length = 2048
-        
-        #self.zipName_auxField = arcpy.Field()
-        #self.zipName_auxField.name = 'ZipName'
-        #self.zipName_auxField.aliasName = 'Zip Name'
-        #self.zipName_auxField.type = 'String'
-        #self.zipName_auxField.length = 2048
-        
         self.quicklookPath_auxField = arcpy.Field()
         self.quicklookPath_auxField.name = 'QuickLookPath'
-        self.quicklookPath_auxField.aliasName = 'Quick Look'
+        self.quicklookPath_auxField.aliasName = 'Quick Look Path'
         self.quicklookPath_auxField.type = 'String'
         self.quicklookPath_auxField.length = 2048
-        # self.quicklookPath_auxField.type = 'Blob'
         
+        self.quicklookFlag_auxField = arcpy.Field()
+        self.quicklookFlag_auxField.name = 'QuicklookFlag'
+        self.quicklookFlag_auxField.aliasName = 'Quick Look Flag'
+        self.quicklookFlag_auxField.type = 'double'
+        self.quicklookFlag_auxField.precision = 8
+        
+        #self.quicklook_auxField = arcpy.Field()
+        #self.quicklook_auxField.name = 'QuickLook'
+        #self.quicklook_auxField.aliasName = 'Quick Look'
+        #self.quicklook_auxField.type = 'Blob'
 
         return [
                 {
@@ -71,61 +68,15 @@ class RasterTypeFactory():
                     'description': ("Supports reading of GeoScene Sentinel1 data"),
                     'enableClipToFootprint': True,
                     'isRasterProduct': False,
-                    'dataSourceType': (DataSourceType.File | DataSourceType.Folder),
+                    'dataSourceType': (DataSourceType.Folder),  # DataSourceType.File | 
                     'dataSourceFilter': 'manifest.safe',
                     'crawlerName': 'GeoSceneSentinelCrawler',
-                    # 'productDefinitionName': 'Geoscene-Sentinel',
-                    #'supportedUriFilters': [
-                    #    {
-                    #        'name': 'Level2',
-                    #        'allowedProducts': [
-                    #                'gamma_0',
-                    #        ],
-                    #        'supportsOrthorectification': True,
-                    #        'enableClipToFootprint': True,
-                    #        'supportedTemplates': [
-                    #            'DataCube_S1_SAR',
-                    #        ]
-                    #    }
-
-                    #],
-                    #'processingTemplates': [
-                    #    {
-                    #        'name': 'DataCube_S1_SAR',
-                    #        'enabled': True,
-                    #        'outputDatasetTag': 'DataCube_S1_SAR',
-                    #        'primaryInputDatasetTag': 'DataCube_S1_SAR',
-                    #        'isProductTemplate': True,
-                    #        'functionTemplate': 'DataCube_S1_SAR.rft.xml'
-                    #    }
-                    #],
-                    ## GET THE CORRECT BAND INDEX , MIN MAX WAVELENGTH
-                    #'bandProperties': [
-                    #    {
-                    #        'bandName': 'vh',
-                    #        'bandIndex': 1,
-                    #        'wavelengthMin': 180000000.0,  # C band with central frequency of 5.405 GHz
-                    #        'wavelengthMax': 180000000.0,
-                    #        'datasetTag': 'SAR'
-                    #    }
-                    #    ,
-                    #    {
-                    #        'bandName': 'vv',
-                    #        'bandIndex': 2,
-                    #        'wavelengthMin': 180000000.0,  # C band with central frequency of 5.405 GHz
-                    #        'wavelengthMax': 180000000.0,
-                    #        'datasetTag': 'SAR'
-                    #    }
-                    #],
-                    # GET THE CORRECT BAND INDEX , MIN MAX WAVELENGTH
 
                     'fields': [self.sensorName_auxField,
                                self.acquisitionDate_auxField,
-                               self.quicklookPath_auxField]
-                               # ,
-                               #self.dirName_auxField,
-                               #self.zipName_auxField
-                                #,self.previewImage_auxField
+                               self.quicklookPath_auxField,
+                               self.quicklookFlag_auxField]
+                    # ,self.quicklook_auxField
                 }
                ]
 
@@ -137,7 +88,6 @@ class GeoSceneSentinelBuilder():
         self.utilities = Utilities()
         
     def canOpen(self, datasetPath):
-        # Open the datasetPath and check if the metadata file contains the string TELEOS
         return self.utilities.isTarget(datasetPath)
 
     def build(self, itemURI): 
@@ -170,13 +120,16 @@ class GeoSceneSentinelBuilder():
             #builtItem['raster'] = {'uri': self.utilities.getQuickLook(path), 'rasterInfo': rasterInfo}
             
             quicklookPath = None
+            quicklookFlag = None
             quicklookNode = self.utilities.getDataObjectByID(tree,'quicklook')
             if quicklookNode is not None:
                 href = quicklookNode.find('byteStream/fileLocation').get('href')
                 quicklookPath = os.path.abspath((os.path.dirname(path) if len(os.path.dirname(path)) != 0 else '.') + '/' + href)
+                quicklookFlag = 1
             else:
                 solutionLib_path = os.path.dirname(os.path.abspath(__file__)) 
                 quicklookPath = os.path.join(solutionLib_path, 'noquicklook.png')
+                quicklookFlag = 0
                 
             footprintCoords = None
             spatialReference = None
@@ -223,18 +176,12 @@ class GeoSceneSentinelBuilder():
                 
 
             metadata = {}
-            #metadata['DirName'] = os.path.dirname(path)
-            #metadata['ZipName'] = os.path.dirname(path).replace('.SAFE','.zip')
             metadata['SensorName'] = sensorName
             metadata['AcquisitionDate'] = acquistionDate
             metadata['QuickLookPath'] = quicklookPath
-
-            #quicklookpath = self.utilities.getQuickLook(path)
-            #f = open(os.path.abspath(quicklookpath), "rb")
-            #img = f.read()
-            #f.close()
-            #metadata['previewImage'] = str(img)
-
+            metadata['QuicklookFlag'] = quicklookFlag
+            # metadata['Quicklook'] = open(quicklookPath, "rb").read()
+            
             # str.encode("UTF-8")
             # img.decode('UTF-8','strict'))
             # metadata['previewImage'] = img.decode('UTF-8','strict')
