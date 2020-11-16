@@ -32,13 +32,6 @@ class RasterTypeFactory():
 
     def getRasterTypesInfo(self):
 
-        # thumbnail
-        # Sensor Name
-        # Acquistion Date
-        # Sensing Orbit
-        # Cloud Cover
-        #sys_acquisitiondate	成像时间	Date	True			
-        #sys_sensorname	传感器名称	Text	True			255
         #sys_productname	产品名称	Text	True			255
         self.sensorName_auxField = arcpy.Field()
         self.sensorName_auxField.name = 'SensorName'
@@ -181,7 +174,9 @@ class GeoSceneSentinelBuilder():
             if quicklookNode is not None:
                 href = quicklookNode.find('byteStream/fileLocation').get('href')
                 quicklookPath = os.path.abspath((os.path.dirname(path) if len(os.path.dirname(path)) != 0 else '.') + '/' + href)
-            
+            else:
+                solutionLib_path = os.path.dirname(os.path.abspath(__file__)) 
+                quicklookPath = os.path.join(solutionLib_path, 'noquicklook.png')
                 
             footprintCoords = None
             spatialReference = None
@@ -190,8 +185,28 @@ class GeoSceneSentinelBuilder():
             if metadataObjectNode is not None:
                 footprintNode = metadataObjectNode.find('metadataWrap/xmlData/safe:frameSet/safe:frame/safe:footPrint',namespaces)
                 spatialReference = int(footprintNode.get('srsName').split('#')[1]) if footprintNode is not None else None
-                coordsNode = metadataObjectNode.find('metadataWrap/xmlData/safe:frameSet/safe:frame/safe:footPrint/gml:coordinates',namespaces)
-                footprintCoords = self.utilities.getGeometryFromCoords(coordsNode.text) if coordsNode is not None else None
+                #coordsNode = metadataObjectNode.find('metadataWrap/xmlData/safe:frameSet/safe:frame/safe:footPrint/gml:coordinates',namespaces)
+                #footprintCoords = self.utilities.getGeometryFromCoords(coordsNode.text) if coordsNode is not None else None
+                
+                dataObjs = metadataObjectNode.findall('metadataWrap/xmlData/safe:frameSet/safe:frame/safe:footPrint/gml:coordinates',namespaces)
+                footprint_geometry = None
+                polygon_array = arcpy.Array()
+                #geo_final = None
+                for dataObj in dataObjs:
+                    coords = dataObj.text
+                    vertex_array = arcpy.Array()
+                    all_vertex = coords.split(" ")
+                    for vertex in all_vertex:
+                        point = vertex.split(',')
+                        vertex_array.add(arcpy.Point(float(point[1]), float(point[0])))
+                    polygon_array.add(vertex_array)
+                    #if geo_final is None:
+                    #    geo_final = arcpy.Polygon(vertex_array)
+                    #else:
+                    #    geo_final = geo_final.join(arcpy.Polygon(vertex_array))
+                footprintCoords = arcpy.Polygon(polygon_array)
+                footprintCoords = footprintCoords.convexHull()
+                # footprintCoords = footprintCoords.extent
             
             sensorName = None
             platformNode = self.utilities.getMetadataObjectByID(tree,'platform')
@@ -341,7 +356,12 @@ class Utilities():
         #if self.__namespace is None:
         #    self.__namespace = dict([node for _, node in ET.iterparse(path, events=['start-ns'])])
         #return self.__namespace
-        return dict([node for _, node in ET.iterparse(path, events=['start-ns'])])
+
+        try:
+            return dict([node for _, node in ET.iterparse(path, events=['start-ns'])])
+        
+        except StopIteration:
+            return None
 
     def getMetadataObjectByID(self,tree,id):
         

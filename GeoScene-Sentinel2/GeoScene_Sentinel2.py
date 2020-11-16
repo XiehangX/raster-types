@@ -31,20 +31,7 @@ class DataSourceType():
 class RasterTypeFactory():
 
     def getRasterTypesInfo(self):
-
-        # thumbnail
-        # Sensor Name
-        # Acquistion Date
-        # Sensing Orbit
-        # Cloud Cover
-        #sys_acquisitiondate	成像时间	Date	True			
-        #sys_sensorname	传感器名称	Text	True			255
-        #sys_productname	产品名称	Text	True			255
-        #sys_resolution	分辨率	Text	True			255
-        #sys_resolution_max	最大分辨率	Long	True			
-        #sys_resolution_min	最小分辨率	Long	True			
-        #sys_cloudcover	云量(%)	Double	True
-        
+                
         self.sensorName_auxField = arcpy.Field()
         self.sensorName_auxField.name = 'SensorName'
         self.sensorName_auxField.aliasName = 'Sensor Name'
@@ -468,10 +455,41 @@ class GeoSceneSentinelBuilder():
             else:
                 return None
 
+            tree = cacheElementTree(path)
             builtItem = {}
-            builtItem['raster'] = {'uri': path}
+            # builtItem['raster'] = {'uri': path}
+            builtItem['raster'] = None
             builtItem['itemUri'] = itemURI
 
+            generalInfoNode = self.utilities.getInfoElement(tree,'General_Info')
+            if generalInfoNode is not None:
+                element = generalInfoNode.find('Product_Info/Datatake/SPACECRAFT_NAME')
+                if element is not None:
+                    builtItem['sensorname'] = element.text
+
+                element = generalInfoNode.find('Product_Info/Datatake/DATATAKE_SENSING_START')
+                if element is not None:
+                    builtItem['acquisitiondate'] = element.text[0:19].replace("T", " ")
+
+                #element = generalInfoNode.find('Product_Info/Datatake/SENSING_ORBIT_NUMBER')
+                #if element is not None:
+                #    builtItem['SensingOrbit'] = element.text
+                
+            qualityInfoNode = self.utilities.getInfoElement(tree,'Quality_Indicators_Info')
+            if qualityInfoNode is not None:
+                element = qualityInfoNode.find('Cloud_Coverage_Assessment')
+                if element is not None:
+                    builtItem['cloudcover'] = element.text
+                    
+            geometricInfoNode = self.utilities.getInfoElement(tree,'Geometric_Info')
+            if qualityInfoNode is not None:
+                element = geometricInfoNode.find('Product_Footprint/Product_Footprint/Global_Footprint/EXT_POS_LIST')
+                if element is not None:
+                    builtItem['footprint'] = element.text
+                    
+            builtItem['resolution'] = '10/20/60'
+            builtItem['resolutionmin'] = 10
+            builtItem['resolutionmax'] = 60                
             builtItemsList = list()
             builtItemsList.append(builtItem)
             return builtItemsList
@@ -515,8 +533,8 @@ class GeoSceneSentinelCrawler():
                         yield filename
             # Todo PATH is like this and always false
             # \\192.168.1.223\ImageData\Test\Sentinel-2\L2A\S2A_MSIL2A_20200608T025551_N0214_R032_T49QFF_20200608T071537.SAFE\MTD_MSIL2A.xml
-            #elif path.endswith(".xml") and "MTD_MSIL" in path:
-            #    yield path
+            elif path.endswith(".xml") and "MTD_MSIL" in path:
+                yield path
 
     def __iter__(self):
         return self
@@ -572,11 +590,10 @@ class Utilities():
         
         if tree is not None:
             root = tree.getroot()
-            if root is None:
-                return result
-            for child in root:
-                if 'General_Info' in child.tag:
-                    return child
+            if root is not None:
+                for child in root:
+                    if 'General_Info' in child.tag:
+                        return child
         return None
     
     def getProductName(self, path):
@@ -594,6 +611,16 @@ class Utilities():
                     return product.text
         return None
 
+    def getInfoElement(self,tree,infoTag):
+        
+        if tree is not None:
+            root = tree.getroot()
+            if root is None:
+                return result
+            for child in root:
+                if infoTag in child.tag:
+                    return child
+        return None
 
     #def getProcessingLevel(self, doc):
     #    try:
@@ -606,10 +633,10 @@ class Utilities():
     
 @lru_cache(maxsize=128)
 def cacheElementTree(path):
-        try:
-            tree = ET.parse(path)
-        except ET.ParseError as e:
-            print("Exception while parsing {0}\n{1}".format(path,e))
-            return None
+    try:
+        tree = ET.parse(path)
+    except ET.ParseError as e:
+        print("Exception while parsing {0}\n{1}".format(path,e))
+        return None
 
-        return tree
+    return tree
