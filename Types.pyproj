@@ -11,7 +11,7 @@
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>Global|VisualStudio|arcgispro-py3</InterpreterId>
+    <InterpreterId>Global|VisualStudio|XMImage</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -19,6 +19,7 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="GeoScene-Sentinel1\GeoScene_Sentinel1.py" />
     <Compile Include="GeoScene-Sentinel2\GeoScene_Sentinel2.py" />
     <Compile Include="System\Deimos-2\Deimos_2.py" />
     <Compile Include="System\TeLEOS-1\TeLEOS-1.py" />
@@ -27,12 +28,11 @@
     <Compile Include="types\GeoScience-Landsat\Geoscience-Landsat.py" />
     <Compile Include="types\Geoscience-Sentinel2\Geoscience-Sentinel.py" />
     <Compile Include="types\Geoscience\Geoscience.py" />
-    <Compile Include="types\sample\pythonRasterDatasetSample.py" />
-    <Compile Include="types\sample\utils.py" />
     <Compile Include="types\SuperView-1\SuperView-1.py" />
     <Compile Include="types\Triplesat\TripleSat.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="GeoScene-Sentinel1\" />
     <Folder Include="GeoScene-Sentinel2" />
     <Folder Include="System\" />
     <Folder Include="System\Deimos-2\" />
@@ -43,14 +43,17 @@
     <Folder Include="types\GeoScience-Landsat\" />
     <Folder Include="types\Geoscience-Sentinel2\" />
     <Folder Include="types\Geoscience\" />
-    <Folder Include="types\sample\" />
     <Folder Include="types\SuperView-1\" />
     <Folder Include="types\Triplesat\" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="Global|VisualStudio|arcgispro-py3" />
+    <InterpreterReference Include="Global|VisualStudio|XMImage" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="GeoScene-Sentinel1\GeoScene_SAR_Composite.rft.xml" />
+    <Content Include="GeoScene-Sentinel1\GeoScene_S1_SAR.rft.xml" />
+    <Content Include="GeoScene-Sentinel1\identity.rft.xml" />
+    <Content Include="GeoScene-Sentinel1\noquicklook.png" />
     <Content Include="GeoScene-Sentinel2\GeoScene_ALL_Composite.rft.xml" />
     <Content Include="GeoScene-Sentinel2\identity.rft.xml" />
     <Content Include="GeoScene-Sentinel2\stretch.rft.xml" />
@@ -98,8 +101,6 @@
     <Content Include="types\Geoscience\GS_Composite_mc.rft.xml" />
     <Content Include="types\Geoscience\GS_Composite_wofs_fs.rft.xml" />
     <Content Include="types\Geoscience\GS_Composite_wofs_ss.rft.xml" />
-    <Content Include="types\sample\identity.rft.xml" />
-    <Content Include="types\sample\stretch.rft.xml" />
     <Content Include="types\SuperView-1\SV1_stretch_allbands.rft.xml" />
     <Content Include="types\SuperView-1\SV1_stretch_ms.rft.xml" />
     <Content Include="types\SuperView-1\SV1_stretch_pan.rft.xml" />
