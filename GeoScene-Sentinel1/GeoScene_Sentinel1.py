@@ -50,11 +50,11 @@ class RasterTypeFactory():
         self.quicklookPath_auxField.type = 'String'
         self.quicklookPath_auxField.length = 2048
         
-        self.quicklookFlag_auxField = arcpy.Field()
-        self.quicklookFlag_auxField.name = 'QuicklookFlag'
-        self.quicklookFlag_auxField.aliasName = 'Quick Look Flag'
-        self.quicklookFlag_auxField.type = 'double'
-        self.quicklookFlag_auxField.precision = 8
+        #self.quicklookFlag_auxField = arcpy.Field()
+        #self.quicklookFlag_auxField.name = 'QuickLookFlag'
+        #self.quicklookFlag_auxField.aliasName = 'Quick Look Flag'
+        #self.quicklookFlag_auxField.type = 'double'
+        #self.quicklookFlag_auxField.precision = 8
         
         #self.quicklook_auxField = arcpy.Field()
         #self.quicklook_auxField.name = 'QuickLook'
@@ -74,8 +74,8 @@ class RasterTypeFactory():
 
                     'fields': [self.sensorName_auxField,
                                self.acquisitionDate_auxField,
-                               self.quicklookPath_auxField,
-                               self.quicklookFlag_auxField]
+                               self.quicklookPath_auxField]
+                    # , self.quicklookFlag_auxField
                     # ,self.quicklook_auxField
                 }
                ]
@@ -120,16 +120,16 @@ class GeoSceneSentinelBuilder():
             #builtItem['raster'] = {'uri': self.utilities.getQuickLook(path), 'rasterInfo': rasterInfo}
             
             quicklookPath = None
-            quicklookFlag = None
+            #quicklookFlag = None
             quicklookNode = self.utilities.getDataObjectByID(tree,'quicklook')
             if quicklookNode is not None:
                 href = quicklookNode.find('byteStream/fileLocation').get('href')
                 quicklookPath = os.path.abspath((os.path.dirname(path) if len(os.path.dirname(path)) != 0 else '.') + '/' + href)
-                quicklookFlag = 1
+                #quicklookFlag = 1
             else:
                 solutionLib_path = os.path.dirname(os.path.abspath(__file__)) 
                 quicklookPath = os.path.join(solutionLib_path, 'noquicklook.png')
-                quicklookFlag = 0
+                #quicklookFlag = 0
                 
             footprintCoords = None
             spatialReference = None
@@ -179,7 +179,7 @@ class GeoSceneSentinelBuilder():
             metadata['SensorName'] = sensorName
             metadata['AcquisitionDate'] = acquistionDate
             metadata['QuickLookPath'] = quicklookPath
-            metadata['QuicklookFlag'] = quicklookFlag
+            # metadata['QuickLookFlag'] = quicklookFlag
             # metadata['Quicklook'] = open(quicklookPath, "rb").read()
             
             # str.encode("UTF-8")
